@@ -1,18 +1,41 @@
 use std::collections::HashMap;
 use std::{fs, time};
+use std::fmt::{Display, Formatter};
 use std::ops::Shl;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::LevelFilter;
 use raqote::Color;
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
+use clap::Parser;
 use crate::chip8::Chip8;
 use crate::chip8_instruction_set::Instruction;
+use crate::cli::CliColor;
 
 mod chip8;
 mod chip8_instruction_set;
+mod cli;
+
+#[derive(Parser, Debug)]
+struct Args {
+    #[clap(short, long)]
+    rom_path: String,
+    #[clap(short, long, default_value_t = 16)]
+    display_scale: u32,
+
+    #[clap(short, long, default_value_t = 4096)]
+    memory: usize,
+
+    #[clap(short, long, default_value_t = 16)]
+    stack: usize,
+
+    #[clap(short, long, default_value_t = CliColor::new(255, 255, 25, 25))]
+    color: CliColor
+}
 
 fn main() {
-    let mut chip = Chip8::new(4096, 16, 16, Color::new(255, 255, 25, 25),
+    let args: Args = Args::parse();
+
+    let mut chip = Chip8::new(args.memory, args.stack, args.display_scale, args.color.into(),
     HashMap::from([
         (Key::Key1, 0x1),
         (Key::Key2, 0x2),
@@ -33,7 +56,7 @@ fn main() {
     ]));
     let (screen_width, screen_height) = chip.get_screen_size();
     let mut window = Window::new("Chip-8", screen_width, screen_height, WindowOptions::default()).unwrap();
-    let program = fs::read("./roms/test_opcode.ch8").expect("File not found");
+    let program = fs::read(args.rom_path).expect("File not found");
     log::set_max_level(LevelFilter::Info);
     chip.load(&program);
     let mut last_tick = time::Instant::now();
