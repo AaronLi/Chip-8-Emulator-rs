@@ -33,7 +33,7 @@ fn main() {
     ]));
     let (screen_width, screen_height) = chip.get_screen_size();
     let mut window = Window::new("Chip-8", screen_width, screen_height, WindowOptions::default()).unwrap();
-    let program = fs::read("IBM Logo.ch8").expect("File not found");
+    let program = fs::read("./roms/test_opcode.ch8").expect("File not found");
     log::set_max_level(LevelFilter::Info);
     chip.load(&program);
     let mut last_tick = time::Instant::now();
